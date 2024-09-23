@@ -66,11 +66,11 @@ const menuItems: MenuItem[] = [
         , '7'
         , <SettingsOutlinedIcon />,
     ),
-    getItem(
-        <Link to={'/'} style={{ fontSize: '14px' }}>Đăng xuất</Link>
-        , '8'
-        , <FiLogOut />,
-    ),
+    // getItem(
+    //     <Link to={'/'} style={{ fontSize: '14px' }} onClick={handleLogout}>Đăng xuất</Link>
+    //     , '8'
+    //     , <FiLogOut />,
+    // ),
 ];
 
 interface SideBarProps {
