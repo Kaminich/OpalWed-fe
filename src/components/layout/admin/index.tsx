@@ -1,5 +1,5 @@
 import { Box, HStack, Stack } from "@chakra-ui/react"
-import { Outlet, useLocation } from "react-router"
+import { Outlet, useLocation, useNavigate } from "react-router"
 import AdminNavbar from "../components/admin_navbar"
 import SideBar from "../components/sidebar"
 import { useEffect, useState } from "react"
@@ -8,8 +8,9 @@ import NotFoundPage from "../../../pages/NotFound"
 
 const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState<boolean>(false);
-    const { role } = useAuth();
+    const { role, setIsAuthenticated, setRole, setIntendedRoute } = useAuth();
     const { pathname } = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -19,13 +20,44 @@ const AdminLayout = () => {
         setCollapsed(!collapsed);
     };
 
-    // if (role !== 'Admin' && role !== 'Owner') {
-    //     return <NotFoundPage />
-    // }
+    if (role !== 'Admin') {
+        return <NotFoundPage />
+    }
+
+    const checkTokenValidity = () => {
+        const token = localStorage.getItem("access_token");
+        const expirationTime = localStorage.getItem("tokenExpiration");
+
+        if (token && expirationTime) {
+            const isExpired = Date.now() > parseInt(expirationTime, 10);
+
+            if (isExpired) {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("tokenExpiration");
+                setIsAuthenticated(false);
+                setRole('');
+                setIntendedRoute(null);
+                navigate('/');
+                return null;
+            } else {
+                return token;
+            }
+        }
+        return null;
+    }
+
+    useEffect(() => {
+        checkTokenValidity();
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(checkTokenValidity, 5 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <>
-            <AdminNavbar type="admin" />
+            <AdminNavbar />
             <HStack align='flex-start' mt={'76px'}>
                 <Box flex={1}>
                     <SideBar collapsed={collapsed} toggleCollapsed={toggleCollapsed} />
