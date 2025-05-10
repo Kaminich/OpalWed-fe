@@ -1,15 +1,14 @@
-import { Card, CardBody, Text, Stack, Button, Box, FormControl, FormLabel, Input, useToast, InputGroup, InputRightElement, Divider, AbsoluteCenter, HStack, Icon, FormErrorMessage } from "@chakra-ui/react";
-import { Border, Color } from "../../styles/styles";
+import { Card, CardBody, Text, Stack, Button, Box, FormControl, FormLabel, Input, useToast, InputGroup, InputRightElement, HStack, FormErrorMessage } from "@chakra-ui/react";
+import { Color } from "../../styles/styles";
 import { Link, useNavigate } from "react-router-dom";
 import { changeTabTitle } from "../../utils/changeTabTitle";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Logo from "../../components/logo";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import { FcGoogle } from "react-icons/fc";
-import { useGoogleLogin } from "@react-oauth/google";
 import { AxiosError } from "axios";
 import ApiClient from "../../services/apiClient";
 import { useAuth } from "../../hooks/useAuth";
+import { convertToTitleCase } from "../../utils/convertToTitleCase";
 
 const LoginPage = () => {
     const [email, setEmail] = useState<string>("");
@@ -20,69 +19,68 @@ const LoginPage = () => {
     const emailRef = useRef<HTMLInputElement>(null);
     const toast = useToast();
     const navigate = useNavigate();
-    const { setIsAuthenticated, setRole } = useAuth();
-    const googleLogin = useGoogleLogin({
-        onSuccess: (token) => {
-            handleGoogleLogin(token.access_token);
-        },
-        onError: () => {
-            toast({
-                title: "Sign In Error",
-                description: "Sign in by Google failed. Try again!!!",
-                status: "error",
-                duration: 2500,
-                position: 'top',
-                isClosable: true,
-            });
-        }
-    })
+    const { setIsAuthenticated, setRole, intendedRoute } = useAuth();
+    // const googleLogin = useGoogleLogin({
+    //     onSuccess: (token) => {
+    //         handleGoogleLogin(token.access_token);
+    //     },
+    //     onError: () => {
+    //         toast({
+    //             title: "Sign In Xảy ra lỗi",
+    //             description: "Sign in by Google failed. Try again!!!",
+    //             status: "error",
+    //             duration: 2500,
+    //             position: 'top',
+    //             isClosable: true,
+    //         });
+    //     }
+    // })
 
-    const handleGoogleLogin = async (token: string) => {
-        const api = new ApiClient<any>('/auth/login-google');
-        const data = {
-            token
-        };
+    // const handleGoogleLogin = async (token: string) => {
+    //     const api = new ApiClient<any>('/auth/login-google');
+    //     const data = {
+    //         token
+    //     };
 
-        try {
-            const response = await api.postUnauthen(data);
+    //     try {
+    //         const response = await api.postUnauthen(data);
 
-            if (response.success) {
-                localStorage.setItem('access_token', response.data.token);
-                localStorage.setItem('refresh_token', response.data.refreshToken);
-                // const decoded = jwtDecode<DecodeJWTRole>(response.data.token);
-                // const decodedRole = formatRoleString(decoded.role[0]);
+    //         if (response.success) {
+    //             localStorage.setItem('access_token', response.data.token);
+    //             localStorage.setItem('refresh_token', response.data.refreshToken);
+    // const decoded = jwtDecode<DecodeJWTRole>(response.data.token);
+    // const decodedRole = formatRoleString(decoded.role[0]);
 
-                // setIsAuthenticated(true);
-                // setRole(decodedRole);
-                // if (decodedRole === 'Customer') {
-                //     navigate('/');
-                // } else {
-                //     return;
-                // }
-            } else {
-                toast({
-                    title: "Error",
-                    description: response.message,
-                    status: "error",
-                    duration: 2500,
-                    position: 'top',
-                    isClosable: true,
-                });
-            }
-        } catch (error) {
-
-            if (error instanceof AxiosError) {
-                toast({
-                    title: "Error",
-                    description: error.response?.data?.message || "An error occurred",
-                    status: "error",
-                    duration: 2500,
-                    position: 'top',
-                    isClosable: true,
-                });
-            }
-        }
-    };
+    // setIsAuthenticated(true);
+    // setRole(decodedRole);
+    // if (decodedRole === 'Customer') {
+    //     navigate('/');
+    // } else {
+    //     return;
+    // }
+    //         } else {
+    //             toast({
+    //                 title: "Xảy ra lỗi",
+    //                 description: response.message,
+    //                 status: "error",
+    //                 duration: 2500,
+    //                 position: 'top',
+    //                 isClosable: true,
+    //             });
+    //         }
+    //     } catch (error) {
+    //         if (error instanceof AxiosError) {
+    //             toast({
+    //                 title: "Xảy ra lỗi",
+    //                 description: error.response?.data?.message || "An error occurred",
+    //                 status: "error",
+    //                 duration: 2500,
+    //                 position: 'top',
+    //                 isClosable: true,
+    //             });
+    //         }
+    //     }
+    // };
 
     const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
@@ -112,11 +110,9 @@ const LoginPage = () => {
 
         try {
             const response = await api.postUnauthen(data);
-            console.log(response);
-
             if (response.isSuccess === false) {
                 toast({
-                    title: "Error",
+                    title: "Xảy ra lỗi",
                     description: response.message,
                     status: "error",
                     duration: 2500,
@@ -124,20 +120,26 @@ const LoginPage = () => {
                     isClosable: true,
                 });
             } else {
+                const expirationTime = Date.now() + 2 * 60 * 60 * 1000;
                 localStorage.setItem('access_token', response.data.token);
-                const role = response.data.userInfo.accountRole;
-                setIsAuthenticated(true);
+                localStorage.setItem("tokenExpiration", expirationTime.toString());
+                const role: string = convertToTitleCase(response.data.userInfo.accountRole);
                 setRole(role);
-                if (role === 'CUSTOMER') {
-                    navigate('/');
-                } else if (role === 'ADMIN') {
+                setIsAuthenticated(true);
+                if (role === 'Customer') {
+                    if (intendedRoute) {
+                        navigate(intendedRoute);
+                    } else {
+                        navigate('/');
+                    }
+                } else if (role === 'Admin') {
                     navigate('/administrator');
                 }
             }
         } catch (error) {
             if (error instanceof AxiosError) {
                 toast({
-                    title: "Error",
+                    title: "Xảy ra lỗi",
                     description: error.response?.data?.message || "An error occurred",
                     status: "error",
                     duration: 2500,
@@ -170,7 +172,16 @@ const LoginPage = () => {
                         <Box bg={'#0C2948'} px={4} mx={'auto'} onClick={() => navigate('/')} cursor={'pointer'}>
                             <Logo width="6rem" height="6rem" />
                         </Box>
-                        <Stack w={'md'} gap={5} m={'auto'}>
+                        <Stack
+                            w={'md'}
+                            gap={5}
+                            m={'auto'}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    handleLogin(e);
+                                }
+                            }}
+                        >
                             <FormControl id="email" isInvalid={!!emailError}>
                                 <FormLabel pl={1}>Email</FormLabel>
                                 <Input
@@ -205,6 +216,7 @@ const LoginPage = () => {
                                     onClick={() => navigate('/forgot-password')}
                                     maxW={28}
                                     color={'gray'}
+                                    fontFamily={'Noto Sans JP'}
                                     _hover={{ color: Color.hoverBlue }}
                                 >
                                     Quên mật khẩu?
@@ -215,14 +227,15 @@ const LoginPage = () => {
                                 _hover={{ bg: '#143252' }}
                                 color={'white'}
                                 fontWeight={'400'}
+                                fontFamily={'Noto Sans JP'}
                                 onClick={handleLogin}
                             >
                                 Đăng nhập
                             </Button>
                         </Stack>
-                        <Box position='relative'>
+                        {/* <Box position='relative'>
                             <Divider borderColor={'black'} />
-                            <AbsoluteCenter bg={'white'} px={2}>
+                            <AbsoluteCenter bg={'white'} px={2} fontFamily={'Hatton'}>
                                 hoặc
                             </AbsoluteCenter>
                         </Box>
@@ -236,12 +249,12 @@ const LoginPage = () => {
                             >
                                 Tiếp tục với Google
                             </Button>
-                        </HStack>
+                        </HStack> */}
                         <HStack gap={2} justify={'center'}>
-                            <Text align={"center"}>
+                            <Text align={"center"} fontFamily={'Noto Sans JP'} fontSize={16}>
                                 Không có tài khoản?
                             </Text>
-                            <Text style={{ color: "#00d4d8" }}>
+                            <Text color={"#00d4d8"} fontFamily={'Canela'}>
                                 <Link to={'/sign-up'}>
                                     Đăng ký
                                 </Link>

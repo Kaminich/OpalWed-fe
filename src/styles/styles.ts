@@ -1,4 +1,4 @@
-// import ReactQuill from "react-quill";
+import ReactQuill from "react-quill";
 
 export const Color = {
     hoverBlue: '#144a91',
@@ -6,10 +6,14 @@ export const Color = {
     darkBlueHover: '#143252',
     lightYellow: '#F8F6F3',
     lightBlue: '#E0EFF4',
+    lightGold: '#F8F6F3',
 };
 
 export const Border = {
-    tableBorder: '1px solid #8080808f'
+    tableBorder: '1px solid #8080808f',
+    lightBorder: '1px solid gainsboro',
+    thinLightBorder: '1px solid #dcdcdc6e',
+    goldBorder: '1px solid #B58B61'
 };
 
 export const Shadow = {
@@ -17,29 +21,29 @@ export const Shadow = {
     cardShadowBottom: '0 3px 3px -3px rgba(0, 0, 0, 0.2)',
 };
 
-// const sizes = ['8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', '48px'];
-// const Size = ReactQuill.Quill.import('attributors/style/size');
-// Size.whitelist = sizes;
-// ReactQuill.Quill.register(Size, true);
+const sizes = ['8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', '48px'];
+const Size = ReactQuill.Quill.import('attributors/style/size');
+Size.whitelist = sizes;
+ReactQuill.Quill.register(Size, true);
 
-// export const modules = {
-//     toolbar: [
-//         [{ header: [1, 2, 3, 4, 5, 6, false] }],
-//         [{ font: [] }],
-//         [{ size: sizes }],
-//         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-//         [
-//             { align: '' },
-//             { align: 'center' },
-//             { align: 'right' },
-//             { align: 'justify' },
-//         ],
-//         [
-//             { list: 'ordered' },
-//             { list: 'bullet' },
-//             { indent: '-1' },
-//             { indent: '+1' },
-//         ],
-//         ['link']
-//     ]
-// }
+export const modules = {
+    toolbar: [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        [{ font: [] }],
+        [{ size: sizes }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [
+            { align: '' },
+            { align: 'center' },
+            { align: 'right' },
+            { align: 'justify' },
+        ],
+        [
+            { list: 'ordered' },
+            { list: 'bullet' },
+            { indent: '-1' },
+            { indent: '+1' },
+        ],
+        ['link']
+    ]
+}
